@@ -1,38 +1,21 @@
 import { Seaport } from "@opensea/seaport-js";
-import { Chain, OpenSeaSDK } from "opensea-js";
 import { ethers } from "ethers";
 
 import config from "../config.json";
 import { ItemType } from "@opensea/seaport-js/lib/constants";
-import { TokenStandard } from "opensea-js/lib/types";
 
 const provider = new ethers.providers.JsonRpcProvider(config.rpcUrl);
 const wallet = new ethers.Wallet(config.signingKey, provider);
 const seaport = new Seaport(wallet);
-// const openseaSDK = new OpenSeaSDK(provider, {
-//   chain: Chain.Goerli,
-//   apiKey: "d250c6403dc74dbe8372867d5500df96",
-// });
 
 async function main() {
   const offerer = config.remote.deployedKernel;
-  console.log(offerer);
 
-  // console.log(offerer);
-
-  // const balance = await openseaSDK.getBalance(
-  //   {
-  //     accountAddress: offerer,
-  //     asset: {
-  //       tokenAddress: "0x932Ca55B9Ef0b3094E8Fa82435b3b4c50d713043",
-  //       tokenId: "24290",
-  //       tokenStandard: TokenStandard.ERC721,
-  //     },
-  //   },
-  //   2
-  // );
-
-  const { executeAllActions, actions } = await seaport.createOrder({
+  // needed to dig into node_modules/seaport-js/lib/actions/createOrder.js to
+  // work around the functions we need not being typed correctly.
+  // also into node_modules/seaport-js/lib/utils/balance.js to break assumptions
+  // about the ethers signer provided to the sdk being the offerer
+  const { actions } = await seaport.createOrder({
     offer: [
       {
         itemType: ItemType.ERC721,
@@ -48,9 +31,16 @@ async function main() {
     ],
   });
 
-  const signature = await executeAllActions();
+  const actionsTyped = actions[1] as typeof actions[1] & {
+    getMessageToSign: () => any;
+    createOrder: () => any;
+  };
 
-  console.log(signature);
+  console.log(actionsTyped);
+  const message = await actionsTyped.getMessageToSign();
+  console.log(message);
+  const signature = await actionsTyped.createOrder();
+  console.log(JSON.stringify(signature));
 }
 
 main();
