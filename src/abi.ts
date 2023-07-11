@@ -11,3 +11,7 @@ export const ERC20_ABI = [
   // Events
   "event Transfer(address indexed from, address indexed to, uint amount)",
 ];
+
+export const ERC721_ABI = [
+  "function setApprovalForAll(address operator, bool approved) external",
+];

@@ -4,11 +4,13 @@ import { ethers } from "ethers";
 import createERC20Approve from "./erc20approve";
 import createERC20Transfer from "./erc20transfer";
 import createTransfer from "./transfer";
+import createERC721SetApprovalForAll from "./erc721setApprovalForAll";
 
 enum TransactionType {
   transfer,
   erc20transfer,
   erc20approve,
+  erc71setApprovalForAll,
 }
 
 const createTransaction = async (
@@ -22,6 +24,8 @@ const createTransaction = async (
       return createERC20Transfer(provider);
     case TransactionType.erc20approve:
       return createERC20Approve(provider);
+    case TransactionType.erc71setApprovalForAll:
+      return createERC721SetApprovalForAll(provider);
     default:
       throw new Error("Transaction type not implemented.");
   }
@@ -52,6 +56,11 @@ export const createCalls = async (
           value: TransactionType.erc20approve,
           description:
             "Approve an account to transfer your ERC20 tokens up to a limit.",
+        },
+        {
+          name: "ERC721 SetApprovalForAll",
+          value: TransactionType.erc71setApprovalForAll,
+          description: "Approve an account to transfer your ERC721 tokens.",
         },
       ],
     })
